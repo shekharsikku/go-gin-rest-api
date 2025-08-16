@@ -2,11 +2,11 @@ package database
 
 import "database/sql"
 
-type AttendeesModel struct {
+type AttendeeModel struct {
 	DB *sql.DB
 }
 
-type Attendees struct {
+type Attendee struct {
 	Id      int `json:"id"`
 	UserId  int `json:"user_id"`
 	EventId int `json:"event_id"`
