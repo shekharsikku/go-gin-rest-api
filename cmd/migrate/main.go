@@ -12,13 +12,13 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("Please, provide a migration direction: 'up' or 'down'")
+	if len(os.Args) < 3 {
+		log.Fatal("Usage: go run main.go <up|down> <db_path>")
 	}
 
-	direction := os.Args[1]
+	direction, path := os.Args[1], os.Args[2]
 
-	db, err := sql.Open("sqlite3", "./data.db")
+	db, err := sql.Open("sqlite3", path)
 
 	if err != nil {
 		log.Fatal(err.Error())
