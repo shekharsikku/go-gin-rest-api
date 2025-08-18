@@ -18,7 +18,8 @@ type application struct {
 }
 
 func main() {
-	db, err := sql.Open("sqlite3", "./data.db")
+	path := env.GetEnvString("DB_PATH", "./tmp/data.db")
+	db, err := sql.Open("sqlite3", path)
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -35,6 +36,6 @@ func main() {
 	}
 
 	if err := app.serve(); err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 }

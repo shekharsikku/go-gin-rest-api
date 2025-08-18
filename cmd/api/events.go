@@ -16,6 +16,8 @@ func (app *application) createEvent(ctx *gin.Context) {
 		return
 	}
 
+	user := app.GetUserFromContext(ctx)
+	event.Owner = user.Id
 	err := app.models.Events.Insert(&event)
 
 	if err != nil {
@@ -58,4 +60,81 @@ func (app *application) getEvent(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, event)
+}
+
+func (app *application) updateEvent(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event id"})
+		return
+	}
+
+	user := app.GetUserFromContext(ctx)
+	existingEvent, err := app.models.Events.Get(id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve event"})
+		return
+	}
+
+	if existingEvent == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	if existingEvent.Owner != user.Id {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this event"})
+		return
+	}
+
+	updatedEvent := &database.Event{}
+
+	if err := ctx.ShouldBindJSON(updatedEvent); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updatedEvent.Id = id
+
+	if err := app.models.Events.Update(updatedEvent); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event"})
+		return
+	}
+
+	updatedEvent.Owner = user.Id
+	ctx.JSON(http.StatusOK, updatedEvent)
+}
+
+func (app *application) deleteEvent(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event id"})
+		return
+	}
+
+	user := app.GetUserFromContext(ctx)
+	existingEvent, err := app.models.Events.Get(id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to retrieve event"})
+		return
+	}
+
+	if existingEvent == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"Error": "Event not found"})
+		return
+	}
+
+	if existingEvent.Owner != user.Id {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to delete this event"})
+		return
+	}
+
+	if err := app.models.Events.Delete(id); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete event"})
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
 }

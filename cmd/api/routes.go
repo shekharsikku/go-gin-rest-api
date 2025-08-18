@@ -16,9 +16,22 @@ func (app *application) routes() http.Handler {
 	v1 := router.Group("/api/v1")
 
 	{
-		v1.POST("/events", app.createEvent)
 		v1.GET("/events", app.getEvents)
 		v1.GET("/events/:id", app.getEvent)
+
+		v1.POST("/auth/register", app.registerUser)
+		v1.POST("/auth/login", app.loginUser)
+	}
+
+	auth := v1.Group("/")
+	auth.Use(app.AuthMiddleware())
+
+	{
+		auth.POST("/events", app.createEvent)
+		auth.PUT("/events/:id", app.updateEvent)
+		auth.DELETE("/events/:id", app.deleteEvent)
+
+		auth.GET("/users", app.getAllUsers)
 	}
 
 	return router
