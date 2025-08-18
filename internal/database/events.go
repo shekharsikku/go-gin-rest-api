@@ -26,7 +26,7 @@ func (em *EventModel) Insert(event *Event) error {
 
 	defer cancel()
 
-	query := "INSERT INTO events (id, owner, name, description, location, date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
+	query := "INSERT INTO events (id, owner, name, description, location, datetime) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
 
 	id := utils.GenerateUniqueID()
 
@@ -95,7 +95,7 @@ func (em *EventModel) Update(event *Event) error {
 
 	defer cancel()
 
-	query := "UPDATE events SET name = $1, description = $2, location = $3, date = $4 WHERE id = $5"
+	query := "UPDATE events SET name = $1, description = $2, location = $3, datetime = $4 WHERE id = $5"
 
 	_, err := em.DB.ExecContext(ctx, query, event.Name, event.Description, event.Location, event.DateTime, event.Id)
 

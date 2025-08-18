@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS events (
     name TEXT NOT NULL,
     description TEXT NOT NULL,   
     location TEXT NOT NULL,   
-    date DATETIME NOT NULL,
+    datetime DATETIME NOT NULL,
     FOREIGN KEY (owner) REFERENCES users (id) ON DELETE CASCADE
 );
