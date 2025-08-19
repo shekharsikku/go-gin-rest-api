@@ -19,6 +19,9 @@ func (app *application) routes() http.Handler {
 		v1.GET("/events", app.getEvents)
 		v1.GET("/events/:id", app.getEvent)
 
+		v1.GET("/events/:id/attendees", app.getAttendeesForEvent)
+		v1.GET("/attendees/:id/events", app.getEventsByAttendee)
+
 		v1.POST("/auth/register", app.registerUser)
 		v1.POST("/auth/login", app.loginUser)
 	}
