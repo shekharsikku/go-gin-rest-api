@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/shekharsikku/go-gin-rest-api/internal/utils"
 )
 
 type AttendeeModel struct {
@@ -21,9 +23,11 @@ func (em *AttendeeModel) Insert(attendee *Attendee) (*Attendee, error) {
 
 	defer cancel()
 
-	query := "INSERT INTO attendees (event_id, user_id) VALUES ($1, $2) RETURNING id"
+	query := "INSERT INTO attendees (id, event_id, user_id) VALUES ($1, $2, $3) RETURNING id"
 
-	err := em.DB.QueryRowContext(ctx, query, attendee.EventId, attendee.UserId).Scan(&attendee.Id)
+	id := utils.GenerateUniqueID()
+
+	err := em.DB.QueryRowContext(ctx, query, id, attendee.EventId, attendee.UserId).Scan(&attendee.Id)
 
 	if err != nil {
 		return nil, err
