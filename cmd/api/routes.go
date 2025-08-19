@@ -31,6 +31,9 @@ func (app *application) routes() http.Handler {
 		auth.PUT("/events/:id", app.updateEvent)
 		auth.DELETE("/events/:id", app.deleteEvent)
 
+		auth.POST("/events/:id/attendees/:uid", app.addAttendeeToEvent)
+		auth.DELETE("/events/:id/attendees/:uid", app.deleteAttendeeFromEvent)
+
 		auth.GET("/users", app.getAllUsers)
 	}
 

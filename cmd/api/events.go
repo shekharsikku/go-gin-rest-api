@@ -138,3 +138,122 @@ func (app *application) deleteEvent(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusNoContent, nil)
 }
+
+/** Routes Handles for Events Attendees */
+
+func (app *application) addAttendeeToEvent(ctx *gin.Context) {
+	eventId, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event id"})
+		return
+	}
+
+	userId, err := strconv.Atoi(ctx.Param("uid"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+		return
+	}
+
+	event, err := app.models.Events.Get(eventId)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve event"})
+		return
+	}
+
+	if event == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	userToAdd, err := app.models.Users.Get(userId)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		return
+	}
+
+	if userToAdd == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	user := app.GetUserFromContext(ctx)
+
+	if event.Owner != user.Id {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to add an attendee"})
+		return
+	}
+
+	existingAttendee, err := app.models.Attendees.GetByEventAndAttendee(event.Id, userToAdd.Id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve attendee"})
+		return
+	}
+
+	if existingAttendee != nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": "Attendee already exists"})
+		return
+	}
+
+	attendee := database.Attendee{
+		EventId: event.Id,
+		UserId:  userToAdd.Id,
+	}
+
+	_, err = app.models.Attendees.Insert(&attendee)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add attendee"})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, attendee)
+}
+
+func (app *application) deleteAttendeeFromEvent(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event id"})
+		return
+	}
+
+	userId, err := strconv.Atoi(ctx.Param("uid"))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+		return
+	}
+
+	event, err := app.models.Events.Get(id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		return
+	}
+
+	if event == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+
+	user := app.GetUserFromContext(ctx)
+
+	if event.Owner != user.Id {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "You are not authorized to delete an attendee from event"})
+		return
+	}
+
+	err = app.models.Attendees.Delete(userId, id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete attendee"})
+		return
+	}
+
+	ctx.JSON(http.StatusNoContent, nil)
+}
